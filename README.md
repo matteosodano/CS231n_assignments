@@ -19,7 +19,7 @@ If you are a `conda` fan, after you create a new conda env then no action
 required is from your side, just:
 
 ```sh
-conda create -n cs231n
+conda create -n cs231n python=3.8
 ```
 
 And then your Anaconda friends will install all the packages on that particular

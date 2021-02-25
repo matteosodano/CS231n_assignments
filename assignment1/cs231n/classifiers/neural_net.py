@@ -80,7 +80,10 @@ class TwoLayerNet(object):
         #############################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-        pass
+        fc1 = X.dot(W1) + b1
+        X2 = np.maximum(0, fc1)
+        fc2 = X2.dot(W2) + b2
+        scores = fc2
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
@@ -97,8 +100,15 @@ class TwoLayerNet(object):
         # classifier loss.                                                          #
         #############################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
+        num_train = X.shape[0]
 
-        pass
+        scores = scores - np.max(scores, axis=1, keepdims=True)
+        sum_exp_scores = np.exp(scores).sum(axis=1, keepdims=True)
+        softmax_matrix = np.exp(scores) / sum_exp_scores
+        loss = np.sum(-np.log(softmax_matrix[np.arange(num_train), y]))
+
+        loss /= num_train
+        loss += reg * np.sum(W1*W1) + reg * np.sum(W2*W2)
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
@@ -111,8 +121,26 @@ class TwoLayerNet(object):
         #############################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-        pass
+        softmax_matrix[np.arange(num_train), y] -= 1
 
+        dW2 = X2.T.dot(softmax_matrix)
+        dW2 /= num_train
+
+        db2 = softmax_matrix.sum(axis=0)
+        db2 /= num_train
+
+        dW1 = softmax_matrix.dot(W2.T)
+        dfc1 = dW1 * (fc1 > 0)
+        dW1 = X.T.dot(dfc1)
+        dW1 /= num_train
+
+        db1 = dfc1.sum(axis=0)
+        db1 /= num_train
+
+        dW1 += reg * 2 * W1
+        dW2 += reg * 2 * W2
+
+        grads = {'W1':dW1, 'W2':dW2, 'b1':db1, 'b2':db2}
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
         return loss, grads
@@ -156,7 +184,9 @@ class TwoLayerNet(object):
             #########################################################################
             # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-            pass
+            batch_indices = np.random.choice(num_train, batch_size)
+            X_batch = X[batch_indices]
+            y_batch = y[batch_indices]
 
             # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
@@ -172,7 +202,8 @@ class TwoLayerNet(object):
             #########################################################################
             # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-            pass
+            for key in self.params:
+                self.params[key] -= learning_rate * grads[key]
 
             # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
@@ -218,7 +249,7 @@ class TwoLayerNet(object):
         ###########################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-        pass
+        y_pred = np.argmax(self.loss(X), axis=1)
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
